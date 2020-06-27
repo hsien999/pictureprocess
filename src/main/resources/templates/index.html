@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-theme.min.css}">
+</head>
+<body>
+<div class="container">
+    <div class=" panel panel-default">
+        <div class="panel-body">
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">@</span>
+                <input id="inputName" type="text" class="form-control" placeholder="FileName"
+                       aria-describedby="basic-addon1">
+                <span class="input-group-btn">
+                <button id="input" class="btn btn-default" type="button">Go!</button>
+            </span>
+            </div>
+            <p class="text" data-toggle="fileName"></p>
+            <p class="text" data-toggle="width"></p>
+            <p class="text" data-toggle="height"></p>
+            <p class="text" data-toggle="bitCount"></p>
+            <div class="row">
+                <div class="col-lg-6 col-ls-4">
+                    <img id="img" class="img-thumbnail" style="max-width:100%;width:80%;height:auto">
+                </div>
+                <div class="col-lg-6 col-ls-4">
+                    <div id="chart" style="max-width:100%;width:500px;height:400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/echarts.min.js}"></script>
+
+<script type="text/javascript">
+    let picture = {
+        rowKey: "",
+        fileName: "",
+        pixelArray: [],
+        width: 0,
+        height: 0,
+        bitCount: 0,
+    }
+    let myChart = echarts.init(document.getElementById('chart'));
+    myChart.setOption({
+        color: ['#3398DB'],
+        title: {
+            text: '灰度图像素统计直方图',
+            subtext: '数据来自HBase数据库',
+            left: 'center',
+            align: 'right'
+        },
+        grid: {
+            bottom: 80
+        },
+        toolbox: {
+            feature: {
+                dataZoom: {
+                    yAxisIndex: 'none'
+                },
+                restore: {},
+                saveAsImage: {}
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                animation: false,
+                label: {
+                    backgroundColor: '#505765'
+                }
+            }
+        },
+        legend: {
+            data: ['像素统计值'],
+            left: 10
+        },
+        dataZoom: [
+            {
+                show: true,
+                realtime: true,
+                start: 0,
+                end: 100
+            },
+            {
+                type: 'inside',
+                realtime: true,
+                start: 0,
+                end: 100
+            }
+        ],
+        yAxis: [
+            {
+                name: '像素统计值',
+                type: 'value',
+                min: 0
+            }
+        ],
+        xAxis: [
+            {
+                name: '灰度',
+                type: 'category',
+                boundaryGap: false,
+                axisLine: {onZero: false},
+                data: []
+            }
+        ],
+        series: [
+            {
+                name: '像素统计值',
+                type: 'bar',
+                animation: false,
+                areaStyle: {},
+                lineStyle: {
+                    width: 1
+                },
+                data: []
+            }
+        ]
+    })
+    $('#input').on('click', function () {
+        myChart.showLoading();
+        $.ajax({
+            type: 'GET',
+            url: '/getPictureInfoByName',
+            data: {'name': $('#inputName').val()},
+            datatype: "json",
+            success: function (data) {
+                data = JSON.parse(JSON.stringify(data));
+                if (Object.keys(data).length === 0) {
+                    $('p[data-toggle="fileName"]').text("");
+                    $('#img').prop("src", "");
+                } else {
+                    picture.rowKey = data.rowKey;
+                    picture.fileName = data.fileName;
+                    picture.pixelArray = data.pixelArray;
+                    picture.width = data.width;
+                    picture.height = data.height;
+                    picture.bitCount = data.bitCount;
+                    $('p[data-toggle="fileName"]').html("文件名:&nbsp;" + picture.fileName);
+                    $('p[data-toggle="width"]').html("宽度:&nbsp;" + picture.width);
+                    $('p[data-toggle="height"]').html("高度:&nbsp;" + picture.height);
+                    $('p[data-toggle="bitCount"]').html("位/像素:&nbsp;" + picture.bitCount);
+                    let xData = [];
+                    let yData = [];
+                    for (let i = 0; i < 256; i++) {
+                        xData.push(i);
+                        yData.push(data.pixelArray[i]);
+                    }
+                    myChart.setOption({
+                        xAxis: [{data: xData}],
+                        series: [{data: yData}]
+                    })
+                    myChart.hideLoading();
+                    $('#img').prop("src", "/getPicture?rowKey=" + picture.rowKey).prop("alt", picture.rowKey);
+                }
+            }
+        });
+    })
+
+</script>
+</html>
