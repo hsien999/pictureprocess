@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 @Configuration
 public class HBaseConfig {

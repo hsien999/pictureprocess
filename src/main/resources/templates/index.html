@@ -7,29 +7,58 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap-theme.min.css}">
 </head>
 <body>
-<div class="container">
-    <div class=" panel panel-default">
-        <div class="panel-body">
-            <div class="input-group">
-                <span class="input-group-addon" id="basic-addon1">@</span>
-                <input id="inputName" type="text" class="form-control" placeholder="FileName"
-                       aria-describedby="basic-addon1">
-                <span class="input-group-btn">
-                <button id="input" class="btn btn-default" type="button">Go!</button>
-            </span>
-            </div>
-            <p class="text" data-toggle="fileName"></p>
-            <p class="text" data-toggle="width"></p>
-            <p class="text" data-toggle="height"></p>
-            <p class="text" data-toggle="bitCount"></p>
-            <div class="row">
-                <div class="col-lg-6 col-ls-4">
-                    <img id="img" class="img-thumbnail" style="max-width:100%;width:80%;height:auto">
+<div class="container" style="padding-top: 2%;">
+    <ul id="myTab" class="nav nav-tabs" role="tablist">
+        <li class="active"><a href="#tab1" data-toggle="tab" role="tab">Tab1</a></li>
+        <li><a href="#tab2" data-toggle="tab" role="tab">Tab2</a></li>
+        <li><a href="#tab3" data-toggle="tab" role="tab">Tab3</a></li>
+    </ul>
+    <div id="myTabContent" class="tab-content">
+        <div class="tab-pane fade in active" id="tab1">
+            <div id="tab1-container" class="">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon1">@</span>
+                            <label for="inputName"></label>
+                            <input id="inputName" type="text" class="form-control" placeholder="Search for..."
+                                   aria-describedby="basic-addon1">
+                            <span class="input-group-btn">
+                        <button id="input" class="btn btn-default" type="button">Search</button>
+                    </span>
+                        </div>
+                        <p class="text" data-toggle="fileName"></p>
+                        <p class="text" data-toggle="width"></p>
+                        <p class="text" data-toggle="height"></p>
+                        <p class="text" data-toggle="bitCount"></p>
+                        <div class="row">
+                            <div class="col-lg-6 col-ls-4">
+                                <img id="img" class="img-thumbnail" style="max-width:100%;width:80%;height:auto">
+                            </div>
+                            <div class="col-lg-6 col-ls-4">
+                                <div id="chart" style="max-width:100%;width:500px;height:400px;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6 col-ls-4">
-                    <div id="chart" style="max-width:100%;width:500px;height:400px;"></div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tab2">
+            <div id="tab2-container" class="">
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <div class="input-group">
+                            <input id="imageFile" class="form-control" type="file" placeholder="Upload File"/>
+                            <span class="input-group-btn">
+                        <button class="btn btn-success" type="button" id="uploadImage">Upload</button>
+                    </span>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+        <div class="tab-pane fade" id="tab3">
+            <div id="tab3-container" class="">3</div>
         </div>
     </div>
 </div>
@@ -48,7 +77,66 @@
         bitCount: 0,
     }
     let myChart = echarts.init(document.getElementById('chart'));
-    myChart.setOption({
+    $('#input').on('click', function () {
+        myChart.showLoading();
+        $.ajax({
+            type: 'GET',
+            url: '/getPictureInfoByName',
+            data: {'name': $('#inputName').val()},
+            datatype: "json",
+            success: function (data) {
+                data = JSON.parse(JSON.stringify(data));
+                if (Object.keys(data).length === 0) {
+                    $('p[data-toggle="fileName"]').text("");
+                    $('#img').prop("src", "");
+                } else {
+                    picture.rowKey = data.rowKey;
+                    picture.fileName = data.fileName;
+                    picture.pixelArray = data.pixelArray;
+                    picture.width = data.width;
+                    picture.height = data.height;
+                    picture.bitCount = data.bitCount;
+                    $('p[data-toggle="fileName"]').html("文件名:&nbsp;" + picture.fileName);
+                    $('p[data-toggle="width"]').html("宽度:&nbsp;" + picture.width);
+                    $('p[data-toggle="height"]').html("高度:&nbsp;" + picture.height);
+                    $('p[data-toggle="bitCount"]').html("位/像素:&nbsp;" + picture.bitCount);
+                    let xData = [];
+                    let yData = [];
+                    for (let i = 0; i < 256; i++) {
+                        xData.push(i);
+                        yData.push(data.pixelArray[i]);
+                    }
+                    myChart.setOption(option);
+                    myChart.setOption({
+                        xAxis: [{data: xData}],
+                        series: [{data: yData}]
+                    })
+                    myChart.hideLoading();
+                    $('#img').prop("src", "/getPicture?rowKey=" + picture.rowKey).prop("alt", picture.rowKey);
+                }
+            },
+        });
+    })
+    $("#uploadImage").on("click", function () {
+        let s = $('#imageFile')[0].files[0];
+        let formData = new FormData();
+        formData.append("file", s);
+        $.ajax({
+            url: "/searchPictureForTampered",
+            type: 'POST',
+            cache: false,
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                data = JSON.parse(JSON.stringify(data));
+                console.log(data);
+            },
+            error: function (err) {
+            }
+        });
+    });
+    const option = ({
         color: ['#3398DB'],
         title: {
             text: '灰度图像素统计直方图',
@@ -125,45 +213,5 @@
             }
         ]
     })
-    $('#input').on('click', function () {
-        myChart.showLoading();
-        $.ajax({
-            type: 'GET',
-            url: '/getPictureInfoByName',
-            data: {'name': $('#inputName').val()},
-            datatype: "json",
-            success: function (data) {
-                data = JSON.parse(JSON.stringify(data));
-                if (Object.keys(data).length === 0) {
-                    $('p[data-toggle="fileName"]').text("");
-                    $('#img').prop("src", "");
-                } else {
-                    picture.rowKey = data.rowKey;
-                    picture.fileName = data.fileName;
-                    picture.pixelArray = data.pixelArray;
-                    picture.width = data.width;
-                    picture.height = data.height;
-                    picture.bitCount = data.bitCount;
-                    $('p[data-toggle="fileName"]').html("文件名:&nbsp;" + picture.fileName);
-                    $('p[data-toggle="width"]').html("宽度:&nbsp;" + picture.width);
-                    $('p[data-toggle="height"]').html("高度:&nbsp;" + picture.height);
-                    $('p[data-toggle="bitCount"]').html("位/像素:&nbsp;" + picture.bitCount);
-                    let xData = [];
-                    let yData = [];
-                    for (let i = 0; i < 256; i++) {
-                        xData.push(i);
-                        yData.push(data.pixelArray[i]);
-                    }
-                    myChart.setOption({
-                        xAxis: [{data: xData}],
-                        series: [{data: yData}]
-                    })
-                    myChart.hideLoading();
-                    $('#img').prop("src", "/getPicture?rowKey=" + picture.rowKey).prop("alt", picture.rowKey);
-                }
-            }
-        });
-    })
-
 </script>
 </html>

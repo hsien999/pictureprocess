@@ -20,9 +20,6 @@ import java.util.*;
 @Service("picturesService")
 public class PicturesService extends HBaseServiceImpl {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PicturesService.class);
-
-
     public List<Pictures> getByFileName(String name) throws IOException {
         Filter filter1 = new SingleColumnValueFilter(Bytes.toBytes(Pictures.COLUMNFAMILY_FILENAME), Bytes.toBytes(""),
                 CompareOperator.EQUAL, new BinaryComparator(Bytes.toBytes(name)));

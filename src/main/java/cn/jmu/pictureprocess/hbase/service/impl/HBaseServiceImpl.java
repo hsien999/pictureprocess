@@ -346,7 +346,7 @@ public class HBaseServiceImpl implements HBaseService {
         for (String family : columnFamily) {
             ColumnFamilyDescriptorBuilder descriptorBuilder =
                     ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(family));
-            if (family.equals(Pictures.COLUMNFAMILY_PIXELARRAY) || family.equals(Pictures.COLUMNFAMILY_NATIVEDATA)) {
+            if (family.equals(Pictures.COLUMNFAMILY_NATIVEDATA)) {
                 descriptorBuilder.setMobEnabled(true);
                 descriptorBuilder.setMobThreshold(102400L);
             }

@@ -1,5 +1,6 @@
 package cn.jmu.pictureprocess.util;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -11,6 +12,7 @@ import java.io.IOException;
 
 @Getter
 @ToString
+@EqualsAndHashCode
 public class BMPPicture {
     private String bfType;
     private int bfSize;
@@ -41,7 +43,10 @@ public class BMPPicture {
 
 
     public BMPPicture(File file) throws IOException {
-        BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+        this(new BufferedInputStream(new FileInputStream(file)));
+    }
+
+    public BMPPicture(BufferedInputStream is) throws IOException {
         if (is.available() < 54) throw new IllegalArgumentException("this stream is not available");
         if (is.read(fileHead) == -1 || is.read(infoHead) == -1) {
             throw new IOException();
@@ -50,6 +55,7 @@ public class BMPPicture {
         initData(is);
         is.close();
     }
+
 
     public int[] transferPixels() {
         int[] pixels = new int[256];
