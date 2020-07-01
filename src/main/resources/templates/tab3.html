@@ -1,0 +1,34 @@
+<div class="tab-pane fade" id="tab3">
+    <div class="panel panel-primary">
+        <div class="panel-body">
+            <div class="alert alert-info alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <strong>题目:</strong> 提供一小块正方形的局部特征图片，
+                在所有图像中比对（直接在图像二维矩阵中比对，不使用直方图），找出所有含有该正方形图片的图像并返回。
+                比对过程要求使用SPARK RDD或HADOOP MAPREDUCE实现将每张图像分割后多个部分并行比对以提升比对速度。
+            </div>
+            <div class="input-group">
+                <input data-toggle="tab3" class="form-control" type="file" placeholder="Upload File"/>
+                <span class="input-group-btn">
+                                <button class="btn btn-success" type="button" data-toggle="tab" name="upload2"
+                                        data-loading-text="Analysing...">Analyse</button>
+                            </span>
+            </div>
+            <div class="panel panel-success" style="margin-top: 2%">
+                <div class="panel-heading">图片信息</div>
+                <table class="table" id="table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>图片名称</th>
+                        <th>匹配点集合</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

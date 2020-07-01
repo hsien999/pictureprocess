@@ -1,0 +1,42 @@
+<div class="tab-pane fade in active" id="tab1">
+    <div class="panel panel-primary">
+        <div class="panel-body">
+            <div class="alert alert-info alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <strong>题目:</strong> 对于每张图像，统计该图像值为0的像素有几个，值为1的像素有几个……值为255的像素有几个，生成统计结果（像素直方图）。
+                每张图像本身、图像文件名和图像统计结果作为一条记录存入HBASE。
+            </div>
+            <div class="input-group">
+                             <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+                                </button>
+                            </span>
+                <input id="inputName" type="text" class="form-control" placeholder="Search for...">
+                <span class="input-group-btn">
+                        <button id="input" class="btn btn-primary" type="button">Search</button>
+                    </span>
+            </div>
+            <div class="panel panel-primary" style="margin-top: 2%">
+                <div class="panel-heading">图片信息</div>
+                <div class="panel-body">
+                    <p class="text text-info" data-toggle="fileName1">文件名:&nbsp;</p>
+                    <p class="text text-info" data-toggle="width">宽度:&nbsp;</p>
+                    <p class="text text-info" data-toggle="height">高度:&nbsp;</p>
+                    <p class="text text-info" data-toggle="bitCount">位/像素:&nbsp</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-ls-4">
+                    <img id="img" class="img-thumbnail" src="/img/default.jpg"
+                         style="max-width:100%;max-height:512px;width:512px;height:auto">
+                </div>
+                <div class="col-lg-6 col-ls-4">
+                    <div id="chart" class="img-thumbnail"
+                         style="max-width:100%;width:500px;height:400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

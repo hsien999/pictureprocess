@@ -7,76 +7,30 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap-theme.min.css}">
 </head>
 <body>
-<div class="container" style="padding-top: 2%;">
-    <ul id="myTab" class="nav nav-tabs" role="tablist">
-        <li class="active"><a href="#tab1" data-toggle="tab" role="tab">Tab1</a></li>
-        <li><a href="#tab2" data-toggle="tab" role="tab">Tab2</a></li>
-        <li><a href="#tab3" data-toggle="tab" role="tab">Tab3</a></li>
+<div class="container" style="padding-top: 1%;">
+    <ul id="myTab" class="nav nav-tabs " role="tablist">
+        <li class="active"><a href="#tab1" data-toggle="tab" role="tab">直方图</a></li>
+        <li><a href="#tab2" data-toggle="tab" role="tab">全图搜索</a></li>
+        <li><a href="#tab3" data-toggle="tab" role="tab">局部特征搜索</a></li>
+        <li><a href="#tab4" data-toggle="tab" role="tab">图像篡改检查</a></li>
     </ul>
     <div id="myTabContent" class="tab-content">
-        <div class="tab-pane fade in active" id="tab1">
-            <div id="tab1-container" class="">
-                <div class="panel panel-primary">
-                    <div class="panel-body">
-                        <div class="input-group">
-                            <span class="input-group-addon" id="basic-addon1">@</span>
-                            <label for="inputName"></label>
-                            <input id="inputName" type="text" class="form-control" placeholder="Search for..."
-                                   aria-describedby="basic-addon1">
-                            <span class="input-group-btn">
-                        <button id="input" class="btn btn-default" type="button">Search</button>
-                    </span>
-                        </div>
-                        <p class="text" data-toggle="fileName"></p>
-                        <p class="text" data-toggle="width"></p>
-                        <p class="text" data-toggle="height"></p>
-                        <p class="text" data-toggle="bitCount"></p>
-                        <div class="row">
-                            <div class="col-lg-6 col-ls-4">
-                                <img id="img" class="img-thumbnail" style="max-width:100%;width:80%;height:auto">
-                            </div>
-                            <div class="col-lg-6 col-ls-4">
-                                <div id="chart" style="max-width:100%;width:500px;height:400px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="tab-pane fade" id="tab2">
-            <div id="tab2-container" class="">
-                <div class="panel panel-info">
-                    <div class="panel-body">
-                        <div class="input-group">
-                            <input id="imageFile" class="form-control" type="file" placeholder="Upload File"/>
-                            <span class="input-group-btn">
-                        <button class="btn btn-success" type="button" id="uploadImage">Upload</button>
-                    </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="tab-pane fade" id="tab3">
-            <div id="tab3-container" class="">3</div>
-        </div>
+        <div th:replace="tab1"></div>
+        <div th:replace="tab2"></div>
+        <div th:replace="tab3"></div>
+        <div th:replace="tab4"></div>
     </div>
 </div>
+<div th:replace="modal"></div>
 </body>
+
 <script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/echarts.min.js}"></script>
-
+<script type="text/javascript" th:src="@{/js/local.js}"></script>
 <script type="text/javascript">
-    let picture = {
-        rowKey: "",
-        fileName: "",
-        pixelArray: [],
-        width: 0,
-        height: 0,
-        bitCount: 0,
-    }
     let myChart = echarts.init(document.getElementById('chart'));
+    myChart.setOption(option);
     $('#input').on('click', function () {
         myChart.showLoading();
         $.ajax({
@@ -88,41 +42,60 @@
                 data = JSON.parse(JSON.stringify(data));
                 if (Object.keys(data).length === 0) {
                     $('p[data-toggle="fileName"]').text("");
-                    $('#img').prop("src", "");
-                } else {
-                    picture.rowKey = data.rowKey;
-                    picture.fileName = data.fileName;
-                    picture.pixelArray = data.pixelArray;
-                    picture.width = data.width;
-                    picture.height = data.height;
-                    picture.bitCount = data.bitCount;
-                    $('p[data-toggle="fileName"]').html("文件名:&nbsp;" + picture.fileName);
-                    $('p[data-toggle="width"]').html("宽度:&nbsp;" + picture.width);
-                    $('p[data-toggle="height"]').html("高度:&nbsp;" + picture.height);
-                    $('p[data-toggle="bitCount"]').html("位/像素:&nbsp;" + picture.bitCount);
-                    let xData = [];
-                    let yData = [];
-                    for (let i = 0; i < 256; i++) {
-                        xData.push(i);
-                        yData.push(data.pixelArray[i]);
-                    }
-                    myChart.setOption(option);
-                    myChart.setOption({
-                        xAxis: [{data: xData}],
-                        series: [{data: yData}]
-                    })
-                    myChart.hideLoading();
-                    $('#img').prop("src", "/getPicture?rowKey=" + picture.rowKey).prop("alt", picture.rowKey);
+                    $('#img').prop("src", "/img/default.jpg");
+                    return;
                 }
-            },
+                picture.rowKey = data.rowKey;
+                picture.fileName = data.fileName;
+                picture.pixelArray = data.pixelArray;
+                picture.width = data.width;
+                picture.height = data.height;
+                picture.bitCount = data.bitCount;
+                $('p[data-toggle="fileName1"]').html("文件名:&nbsp;" + picture.fileName);
+                $('p[data-toggle="width"]').html("宽度:&nbsp;" + picture.width);
+                $('p[data-toggle="height"]').html("高度:&nbsp;" + picture.height);
+                $('p[data-toggle="bitCount"]').html("位/像素:&nbsp;" + picture.bitCount);
+                let xData = [];
+                let yData = [];
+                for (let i = 0; i < 256; i++) {
+                    xData.push(i);
+                    yData.push(data.pixelArray[i]);
+                }
+                myChart.setOption({
+                    xAxis: [{data: xData}],
+                    series: [{data: yData}]
+                })
+                myChart.hideLoading();
+                $('#img').prop("src", "/getPicture?rowKey=" + picture.rowKey).prop("alt", picture.rowKey);
+            }, error: function (err) {
+                alert("Error! " + err);
+                myChart.hideLoading();
+            }
         });
     })
-    $("#uploadImage").on("click", function () {
-        let s = $('#imageFile')[0].files[0];
+    $('button[data-toggle="tab"]').on("click", function (e) {
+        const choice = $(e.target)[0].name;
+        let url, file;
+        switch (choice) {
+            case 'upload1':
+                url = '/searchPictureForAll';
+                file = $('input[data-toggle="tab2"]')[0].files[0];
+                break;
+            case 'upload2':
+                url = '/searchPictureForPart';
+                file = $('input[data-toggle="tab3"]')[0].files[0];
+                break;
+            case 'upload3':
+                url = '/searchPictureForTampered'
+                file = $('input[data-toggle="tab4"]')[0].files[0];
+                break;
+        }
+        const this_btn = this;
+        $(this_btn).button('loading');
         let formData = new FormData();
-        formData.append("file", s);
+        formData.append("file", file);
         $.ajax({
-            url: "/searchPictureForTampered",
+            url: url,
             type: 'POST',
             cache: false,
             data: formData,
@@ -130,88 +103,115 @@
             contentType: false,
             success: function (data) {
                 data = JSON.parse(JSON.stringify(data));
+                if (Object.keys(data).length === 0 || data == null) {
+                    alert("NotFound!");
+                    $(this_btn).button('reset');
+                    return;
+                }
                 console.log(data);
-            },
-            error: function (err) {
+                if (choice === 'upload1') {
+                    const fileName = data.fileName;
+                    let html = '';
+                    if (fileName === null) alert("NotFound!");
+                    else html = "文件名:&nbsp;" + fileName;
+                    $('p[data-toggle="fileName2"]').html(html);
+                } else if (choice === 'upload2') {
+                    pointsResult = data;
+                    let table = document.getElementById("table");
+                    if (pointsResult.length === 0) alert("NotFound!");
+                    else {
+                        while (table.rows.length > 1) {
+                            table.deleteRow(1);
+                        }
+                        for (let i = 1; i < pointsResult.length; i++) {
+                            let newRow = table.insertRow(i);
+                            let col1 = newRow.insertCell(0);
+                            col1.innerHTML = "<th scope=\"row\">" + (i) + "</th>";
+                            let col2 = newRow.insertCell(1);
+                            col2.innerHTML = "<th>" + pointsResult[i].fileName + "</th>";
+                            let col3 = newRow.insertCell(2);
+                            col3.innerHTML = "<th>" + JSON.stringify(pointsResult[i].points) + "</th>";
+                            let col4 = newRow.insertCell(3);
+                            col4.innerHTML = "<th><button type=\"button\" class=\"btn btn-primary\" " +
+                                "data-toggle=\"modal\" data-target=\"#Modal\" data-row=" + i + " data-type=\"1\">查看" +
+                                "</button></th>"
+                        }
+                    }
+                } else {
+                    pointsResult2 = data;
+                    let table = document.getElementById("table2");
+                    if (pointsResult2.length === 0) alert("NotFound!");
+                    else {
+                        while (table.rows.length > 1) {
+                            table.deleteRow(1);
+                        }
+                        for (let i = 0; i < pointsResult2.length; i++) {
+                            let newRow = table.insertRow(i + 1);
+                            let col1 = newRow.insertCell(0);
+                            col1.innerHTML = "<th scope=\"row\">" + (i + 1) + "</th>";
+                            let col2 = newRow.insertCell(1);
+                            col2.innerHTML = "<th>" + pointsResult2[i].fileName + "</th>";
+                            let col3 = newRow.insertCell(2);
+                            col3.innerHTML = "<th>" + pointsResult2[i].similarity + "</th>";
+                            let col4 = newRow.insertCell(3);
+                            col4.innerHTML = "<th><button type=\"button\" class=\"btn btn-primary\" " +
+                                "data-toggle=\"modal\" data-target=\"#Modal\" data-row=" + i + " data-type=\"2\">查看" +
+                                "</button></th>"
+                        }
+                    }
+                }
+                $(this_btn).button('reset');
+            }, error: function (err) {
+                alert("Error! " + err);
+                $(this_btn).button('reset');
             }
         });
     });
-    const option = ({
-        color: ['#3398DB'],
-        title: {
-            text: '灰度图像素统计直方图',
-            subtext: '数据来自HBase数据库',
-            left: 'center',
-            align: 'right'
-        },
-        grid: {
-            bottom: 80
-        },
-        toolbox: {
-            feature: {
-                dataZoom: {
-                    yAxisIndex: 'none'
+    $('#Modal').on('show.bs.modal', function (event) {
+        let modal = $(this);
+        const button = $(event.relatedTarget);
+        const row = button.data('row');
+        const type = button.data('type');
+        if (type === 1) {
+            const fileName = pointsResult[row].fileName;
+            modal.find('.modal-title').text('与图[' + fileName + ']匹配的分析结果');
+            const width = pointsResult[0].width, height = pointsResult[0].height;
+            $.ajax({
+                url: '/getResolvePictureForPart',
+                type: 'POST',
+                data: {
+                    'fileName': fileName,
+                    'width': width,
+                    'height': height,
+                    'points': JSON.stringify(pointsResult[row].points)
                 },
-                restore: {},
-                saveAsImage: {}
-            }
-        },
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'cross',
-                animation: false,
-                label: {
-                    backgroundColor: '#505765'
+                success: function (data) {
+                    modal.find('.modal-body img').prop("src", data);
+                }, error: function (err) {
+                    alert("Error! " + err);
                 }
-            }
-        },
-        legend: {
-            data: ['像素统计值'],
-            left: 10
-        },
-        dataZoom: [
-            {
-                show: true,
-                realtime: true,
-                start: 0,
-                end: 100
-            },
-            {
-                type: 'inside',
-                realtime: true,
-                start: 0,
-                end: 100
-            }
-        ],
-        yAxis: [
-            {
-                name: '像素统计值',
-                type: 'value',
-                min: 0
-            }
-        ],
-        xAxis: [
-            {
-                name: '灰度',
-                type: 'category',
-                boundaryGap: false,
-                axisLine: {onZero: false},
-                data: []
-            }
-        ],
-        series: [
-            {
-                name: '像素统计值',
-                type: 'bar',
-                animation: false,
-                areaStyle: {},
-                lineStyle: {
-                    width: 1
-                },
-                data: []
-            }
-        ]
+            });
+        } else if (type === 2) {
+            const fileName = pointsResult2[row].fileName;
+            modal.find('.modal-title').text('最高匹配图[' + fileName + ']篡改部分的分析结果');
+            let formData = new FormData();
+            formData.append("matrix", JSON.stringify(pointsResult2[row].matrix));
+            formData.append("file", $('input[data-toggle="tab4"]')[0].files[0]);
+            $.ajax({
+                url: '/getResolvePictureForTampered',
+                type: 'POST',
+                cache: false,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    modal.find('.modal-body img').prop("src", data);
+                }, error: function (err) {
+                    alert("Error! " + err);
+                }
+            });
+        }
     })
+
 </script>
 </html>

@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "hbase.rootdir",
+      "type": "java.lang.String",
+      "description": "Description for hbase.rootdir."
+    },
+    {
+      "name": "spark.executor-memory",
+      "type": "java.lang.String",
+      "description": "Description for spark.executor-memory."
+    },
+    {
+      "name": "spark.executor-cores",
+      "type": "java.lang.String",
+      "description": "Description for spark.executor-cores."
+    },
+    {
+      "name": "spark.master",
+      "type": "java.lang.String",
+      "description": "Description for spark.master."
+    },
+    {
+      "name": "spark.appname",
+      "type": "java.lang.String",
+      "description": "Description for spark.appname."
+    }
+  ] }

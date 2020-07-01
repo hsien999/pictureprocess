@@ -1,13 +1,9 @@
 package cn.jmu.pictureprocess.hbase.pojo;
 
 import lombok.Data;
-import lombok.Setter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 @Data
 public class HBaseCell {

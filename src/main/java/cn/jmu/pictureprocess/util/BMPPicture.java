@@ -2,13 +2,9 @@ package cn.jmu.pictureprocess.util;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 
 @Getter
 @ToString
@@ -69,19 +65,19 @@ public class BMPPicture {
 
     private void initHead() {
         bfType = String.valueOf(new char[]{(char) fileHead[0], (char) fileHead[1]});
-        bfSize = byte2Int(fileHead, 4, 5);
-        bfOffBits = byte2Int(fileHead, 4, 13);
-        biSize = byte2Int(infoHead, 4, 3);
-        biWidth = byte2Int(infoHead, 4, 7);
-        biHeight = byte2Int(infoHead, 4, 11);
-        biPlanes = (short) byte2Int(infoHead, 2, 13);
-        biBitCount = (short) byte2Int(infoHead, 2, 15);
-        biCompression = byte2Int(infoHead, 4, 19);
-        biSizeImage = byte2Int(infoHead, 4, 23);
-        biXPixelsPerMeter = byte2Int(infoHead, 4, 27);
-        biYPixelsPerMeter = byte2Int(infoHead, 4, 31);
-        biColorUsed = byte2Int(infoHead, 4, 35);
-        biColorImportant = byte2Int(infoHead, 4, 39);
+        bfSize = MyBytesUtil.bytes2int(fileHead, 2, false);
+        bfOffBits = MyBytesUtil.bytes2int(fileHead, 10, false);
+        biSize = MyBytesUtil.bytes2int(infoHead, 0, false);
+        biWidth = MyBytesUtil.bytes2int(infoHead, 4, false);
+        biHeight = MyBytesUtil.bytes2int(infoHead, 8, false);
+        biPlanes = MyBytesUtil.bytes2short(infoHead, 12, false);
+        biBitCount = MyBytesUtil.bytes2short(infoHead, 14, false);
+        biCompression = MyBytesUtil.bytes2int(infoHead, 16, false);
+        biSizeImage = MyBytesUtil.bytes2int(infoHead, 20, false);
+        biXPixelsPerMeter = MyBytesUtil.bytes2int(infoHead, 24, false);
+        biYPixelsPerMeter = MyBytesUtil.bytes2int(infoHead, 28, false);
+        biColorUsed = MyBytesUtil.bytes2int(infoHead, 32, false);
+        biColorImportant = MyBytesUtil.bytes2int(infoHead, 36, false);
     }
 
     private void initData(BufferedInputStream is) throws IOException {
@@ -89,28 +85,30 @@ public class BMPPicture {
         boolean reserve = (biHeight < 0);
         //高度为负数时翻转(自下而上=>自上而下)
         int height = reserve ? -biHeight : biHeight;
-        if (biBitCount != 8 && biBitCount != 24 || width * height > 1e9)
-            throw new IOException("only resolve 8 or 24 bit bmp and pixels are less than 1e9");
+        if (biBitCount != 8 && biBitCount != 24 && biBitCount != 32 || width * height > 1e9)
+            throw new IOException("only resolve 8 or 24 bit or 32 bit bmp and pixels should be  less than 1e9");
         int skip_width = 0;
-        if (biBitCount == 24) {
+        if (biBitCount == 24 || biBitCount == 32) {
             red = new byte[height][width];
             green = new byte[height][width];
             blue = new byte[height][width];
-            int m = biWidth * 3 % 4;
-            if (m > 0) skip_width = 4 - m;
+            if (biBitCount == 32) alpha = new byte[height][width];
+            else {
+                int m = width * 3 % 4;
+                if (m > 0) skip_width = 4 - m;
+            }
         } else {
             if (is.skip(bfOffBits - 54) == 0) throw new IOException();
             alpha = new byte[height][width];
         }
         for (int i = reserve ? 0 : (height - 1); reserve ? (i < height) : (i >= 0); i = reserve ? i + 1 : i - 1) {
             for (int j = 0; j < width; j++) {
-                if (biBitCount == 24) {
+                if (biBitCount == 24 || biBitCount == 32) {
+                    if (biBitCount == 32) alpha[i][j] = (byte) is.read();
                     blue[i][j] = (byte) is.read();
                     green[i][j] = (byte) is.read();
                     red[i][j] = (byte) is.read();
-                    if (j == 0) {
-                        if (is.skip(skip_width) == 0) throw new IOException();
-                    }
+                    if (j == width - 1) is.skip(skip_width);
                 } else {
                     alpha[i][j] = (byte) is.read();
                 }
@@ -118,22 +116,43 @@ public class BMPPicture {
         }
     }
 
-    /**
-     * 实现将skip个字节数据逆向转化为int数据的方法
-     * 适用小端机器的存储数据的特性
-     *
-     * @param bytes 待转化的字节数组
-     * @param skip  转化的字节数
-     * @param start 起始字节
-     * @return 对应的int数值
-     */
-    private int byte2Int(byte[] bytes, int skip, int start) throws IllegalArgumentException {
-        if (skip <= 0 || skip > 4 || start < skip - 1 || start > bytes.length - 1) throw new IllegalArgumentException();
-        int toInt = 0;
-        for (int i = 0; i < skip; i++) {
-            toInt = toInt | (bytes[start - i] & 0xff) << (skip - i - 1) * 8;
+    public static ByteArrayOutputStream transfer8bTo24b(BMPPicture inPic) throws IOException {
+        if (inPic.getBiBitCount() != 8) throw new IllegalStateException();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        output.write((byte) inPic.getBfType().charAt(0));
+        output.write((byte) inPic.getBfType().charAt(1));
+        int size = inPic.getBfSize() - (inPic.getBfOffBits() - 54) + inPic.getBiWidth() * inPic.getBiHeight() * 2;
+        output.write(MyBytesUtil.int2bytes(size, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        output.write(MyBytesUtil.int2bytes(54, false));
+        output.write(MyBytesUtil.int2bytes(inPic.getBiSize(), false));
+        output.write(MyBytesUtil.int2bytes(inPic.getBiWidth(), false));
+        output.write(MyBytesUtil.int2bytes(inPic.getBiHeight(), false));
+        output.write(MyBytesUtil.short2bytes(inPic.getBiPlanes(), false));
+        output.write(MyBytesUtil.short2bytes((short) 24, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        output.write(MyBytesUtil.int2bytes(size - 54, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        output.write(MyBytesUtil.int2bytes(0, false));
+        int width = inPic.getBiWidth();
+        boolean reserve = (inPic.getBiHeight() < 0);
+        int height = reserve ? -inPic.getBiHeight() : inPic.getBiHeight();
+        int skip_width = 0;
+        int m = width * 3 % 4;
+        if (m > 0) skip_width = 4 - m;
+        byte[][] alpha = inPic.getAlpha();
+        byte[] offset = new byte[4];
+        for (int i = reserve ? 0 : (height - 1); reserve ? (i < height) : (i >= 0); i = reserve ? i + 1 : i - 1) {
+            for (int j = 0; j < width; j++) {
+                output.write(alpha[i][j]);
+                output.write(alpha[i][j]);
+                output.write(alpha[i][j]);
+                if (j == width - 1) output.write(offset, 0, skip_width);
+            }
         }
-        return toInt;
+        return output;
     }
 }
 

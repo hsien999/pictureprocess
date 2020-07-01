@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 @Configuration
 public class HBaseConfig {
@@ -20,7 +19,7 @@ public class HBaseConfig {
 
     @Scope("prototype")
     @Bean(name = "hBaseConfiguration")
-    public org.apache.hadoop.conf.Configuration hBaseConfiguration() throws IOException {
+    public org.apache.hadoop.conf.Configuration hBaseConfiguration() {
         org.apache.hadoop.conf.Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.rootdir", rootDir);
         /*        conf.set("hbase.zookeeper.quorum", properties.getZkQuorum());

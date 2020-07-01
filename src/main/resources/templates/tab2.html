@@ -1,0 +1,26 @@
+<div class="tab-pane fade" id="tab2">
+    <div class="panel panel-primary">
+        <div class="panel-body">
+            <div class="alert alert-info alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <strong>题目:</strong> 提供一张BOSSBase中的图片，计算该图片的统计直方图，将该直方图与HBASE中所有图片记录的直方图比对，
+                以找到匹配图片，返回该图片的文件名。图像比对要求使用大数据技术进行，即将HBASE中的数据作为数据源读取出来，
+                使用SPARK RDD或hadoop MAPreduce技术，使搜索图片的直方图能够同时和多张图片的统计直方图比对。
+            </div>
+            <div class="input-group">
+                <input data-toggle="tab2" class="form-control" type="file" placeholder="Upload File"/>
+                <span class="input-group-btn">
+                                <button class="btn btn-success" type="button" data-toggle="tab" name="upload1"
+                                        data-loading-text="Analysing...">Analyse</button>
+                            </span>
+            </div>
+            <div class="panel panel-primary" style="margin-top: 2%">
+                <div class="panel-heading">图片信息</div>
+                <div class="panel-body">
+                    <p class="text text-info" data-toggle="fileName2">文件名:&nbsp;</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
